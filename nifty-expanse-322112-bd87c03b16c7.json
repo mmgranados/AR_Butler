@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "nifty-expanse-322112",
+  "private_key_id": "bd87c03b16c72de4680dfa2487d7e97c494bf665",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDccCWuhXOpXiff\nA8YT+WUgdH4cs+0EjPDALNUfWosWi8T2OJVgMmYVmICkrX77sY7L4OUcxbgN/lHX\nLOTMm6Zq28FQrwvq5gTIKhLaroUrMY77L0TPMZqhDqkgftTx+MwugpQX6oy+y0bQ\nq+gSY9FDRHLI9wlUxJ6tmii2BfuH+WgW4weoWmRblB2Deg6CJqw9nj9UK9z66nQI\n0DfAx9unkmj5dbEbVOA1x+Xre5bcMVFpTiFLFTgvvouMpAEbvylteyXGUttCXtpa\nnkw3/9cTtZMywkMdz2Q3+q+9VAe+LtlENOxWoKFGnnQdxk1jWbkI0KPrfDLTn84w\nuLuflWWlAgMBAAECggEAB735mNRPkGCB8nt5srxk4JuuzTfFiI4hq4I3lwMRVQCi\nMYqhtm/2tWX2iLIePl1JWGBE87p/ASDQQ4gsXgJOeTzQIJMRTlX3T4dow5zzCOYT\n8T8DAerqVSNEbeN+e6QjGbQU2vUuLcpKaaxL+Y9fa2clR+kjPwKr1wmNyfzSTX90\ngn0YfBsN1xdfOR8KNHzE0tKc3e+yBVDH60Q5iYChHk2NL2+0OXBa8ebBbtjwjEH/\nhgKWhyXTVk5BxAWnkLJkqRWkF4l0oEIruV0SYXG491DuaS81LPAZ4orYJUlBBxUQ\naTPxThYS2ONCCreadCf03nlOHlLbgMa9TQF4wI/awQKBgQD6XJMsiruGKJN+iYOe\nk5efx1Ux/0aLGKUoqiq9knVgKDKOrPYxeTcae/ytKLYM4RsfyvpxYE2Rt2ueWwbT\nBlwNpFyta8XQa3FXG6aaW8zmZriOs+A4dUaPFuAG6WHXrr8iStj0iR5MKFG9xBby\nh84x3CAxr3DiI0jMVs6oKiGdQQKBgQDhZw1glbSsTQ9SmNas7s/a7mjlO0CxDxYj\nk1k67WERCj28xXY4vhtk4WTATGR0sCW0m0ik9qs8PZbm0sCfIIqinTyzx+cHXjGN\npCUEd4F/wW+3KEHmm2E6710JaGFC5waOp69FSrpsJSfg7CUsVsI3sCGveXfNLzbw\nh39/sxybZQKBgEz1AeRSLLxbYqMlwAiRk6zwh9abgmKlS7dJP2QQTfYlxQyoS/D/\nMpn4fL35YqRo2X6XVQ5erNlayUDe+CULsmYbHMXN9/tN24QMItUV3NEByD9NOWIB\nYpP/UxOsz3+N3oC7Ax9/uolsZ1vul6MrbY1T/a1oIUnR0MHG+TUl5jlBAoGAOuJy\nIzZY8d5bz2cwRhNJZ9d6vdAB8X+QeBDJcdSL1CjJwiQP43j+rRcY/Ae5Aqb14r3i\nd34dc+pfHsQWIDwfG6ZaMllZ6JnZ9jfYl9cklJyTM9UnijgzaXMY6hlDt3elReVW\nq5J/Kzt1tJPcjj3IFUZFNpNUEd1wy9uKGnFPWuUCgYAFyErtdtD6FVR4MHlp3lTT\nWj/m3XbMde08+JA/XZ5GiQ9atWiYxsiiesNpMWwbu2CC6vpX01qIlEK4i2amNt8B\njSQY5AItsERinh2H7Z2Ojx3uuHJHKZnXaGcxW2TAz0QQ3Xtl0KrMFfW9KQvnM2yI\nY4/4uGhg/pNsYUvaoSYMUA==\n-----END PRIVATE KEY-----\n",
+  "client_email": "mmgranados-service-account@nifty-expanse-322112.iam.gserviceaccount.com",
+  "client_id": "112479617778667977947",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/mmgranados-service-account%40nifty-expanse-322112.iam.gserviceaccount.com"
+}
