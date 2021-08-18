@@ -26,14 +26,17 @@ TIME_DAILY_RESET = 18 # 18TH HR, 6PM
 # contains name and user ID 
 RECORDS_DISCORD_SCHOLARS = {}
 # 
-DICT_ROLES_SCHOLAR = {}
+DICT_ROLES_CHANGE_SCHOLAR = {}
 SCHOLAR_LIST_AVGSLP = []
 SCHOLAR_LIST_NAME = []
-DIAMOND = 300
-PLATINUM = 250
-GOLD = 200
-SILVER = 150
-BRONZE = 100
+# AR_ROLE_LIST = ["Diamond", "Platinum", "Gold", "Silver", "Bronze", "Iron"]
+AR_ROLE_LIST = []
+DICT_ROLENAME_TO_ID = {'Diamond': 870158644686245949, 'Platinum': 870158382613544980, 'Gold': 870157782282813500, 'Silver': 870157342447128656, 'Bronze': 870157202701299712, 'Iron': 870156327824011275}
+DIAMOND = 210
+PLATINUM = 160
+GOLD = 125
+SILVER = 100
+BRONZE = 75
 IRON = BRONZE - 0.000000000001
 
 # AxieReinassance server/Guild ID
@@ -95,8 +98,16 @@ def get_info():
   records_df = pd.DataFrame.from_dict(records_data)
   global SCHOLAR_LIST_NAME
   global SCHOLAR_LIST_AVGSLP
-  SCHOLAR_LIST_NAME = records_df['Name'].tolist()
-  SCHOLAR_LIST_AVGSLP = records_df["Average per day"] 
+  new_name = records_df['Name'].str.split('#', 1, expand=True)
+  # new_name = new_name.drop([1], axis = 1)
+  # print(new_name[0].tolist())
+
+  SCHOLAR_LIST_NAME = new_name[0].tolist()
+  print(SCHOLAR_LIST_NAME)
+  SCHOLAR_LIST_AVGSLP = records_df["Average per day"].tolist()
+  # for name, slpavg in zip(SCHOLAR_LIST_NAME, SCHOLAR_LIST_AVGSLP):
+  #   print("{}, {}".format(name, slpavg)) 
+  
   
   print("finished get_info test")
 
@@ -111,30 +122,37 @@ def get_info():
 # set role for every item - scholar
 def eval_ranks():
   for name, slp_avg in zip(SCHOLAR_LIST_NAME, SCHOLAR_LIST_AVGSLP):
-    if avg >= DIAMOND:
+    if slp_avg >= DIAMOND:
       set_rank(name, "Diamond")
-    elif avg >= PLATINUM:
+    elif slp_avg >= PLATINUM:
       set_rank(name, "Platinum")
-    elif avg >= GOLD:
+    elif slp_avg >= GOLD:
       set_rank(name, "Gold")
-    elif avg >= SILVER:
+    elif slp_avg >= SILVER:
       set_rank(name, "Silver")
-    elif avg >= BRONZE:
+    elif slp_avg >= BRONZE:
       set_rank(name, "Bronze") 
-    elif avg < IRON:
+    elif slp_avg < IRON:
       set_rank(name, "Iron") 
     
 #    
 def set_rank(name, rank):
-  DICT_ROLES_SCHOLAR[name] = rank
+  DICT_ROLES_CHANGE_SCHOLAR[name] = rank
 
-def set_roles_discord(name, rank):
+async def set_roles_discord(scholar, rank):
+  try:
+    for role in AR_ROLE_LIST:
+      await scholar.remove_roles(role, atomic=True)
+    await scholar.add_roles(rank)
 
-  print("set roles function not yet implemented")
-  pass
+    print("Changed the rank of {} to {}".format(scholar, rank.name))
+  except Exception as e:
+    print(e)
+    print("Scholar is of {}".format(type(scholar)))
+    print("Failed to Change the rank of {}".format(scholar))
 
 @bot.command(name = 'update')
-@commands.has_permissions(manage_roles=True)
+@commands.has_any_role("Admin", "Facilitator")
 async def get_channel_members(ctx):
   #Get info of users
   # access global record of discord scholars
@@ -145,31 +163,73 @@ async def get_channel_members(ctx):
   for member in guild.get_role(SCHOLAR_ROLE_ID).members:
     RECORDS_DISCORD_SCHOLARS[member.name] = member.id
 
-  t1 = threading.Thread(target = eval_ranks)
-  t1.start()
-
-  t1.join()
-
-  #  try to update 
+    #  try to update 
   try:
     await ctx.send("Trying to update scholar info from gsheets...")
     get_info()
-  except Exception:
+    print("Scholar info from gsheets loaded")
+  except Exception as e:
+    print("Something went wrong while retrieving info from google sheets")
+    print(str(e))
     await ctx.send("Something went wrong while retrieving info from google sheets")
   await ctx.send("Internal scholar list updated")
 
+  try:
+    eval_ranks()
+    await ctx.send("Successfully evaluated new ranks")
+    print(DICT_ROLES_CHANGE_SCHOLAR)
+  except Exception:
+    await ctx.send("Error in evaluating ranks")
 
-   
-  for member in bot.get_all_members():
-    pass
-  #   if member.name in guild.role.members:
-  #     print(member)
-  #   break
+  # Get equivalent discord id of each scholar
+    # use id to get Member object/user object
+    # pass on Member/User object to enable remove_roles
+  global AR_ROLE_LIST
+  AR_ROLE_LIST = [] # EMPTY LIST OF ROLES
+  for value in DICT_ROLENAME_TO_ID.values():
+    role = guild.get_role(value)
+    AR_ROLE_LIST.append(role)
+  print(AR_ROLE_LIST)
+
+  async with ctx.typing():
+    for key, value in DICT_ROLES_CHANGE_SCHOLAR.items():
+      try:
+        scholar_id = RECORDS_DISCORD_SCHOLARS[key]
+        print("checkpoint 0") ########### CHECKPOINT 0 #########
+        # return member object from id
+        scholar = guild.get_member(scholar_id)
+        print("checkpoint 1")
+        print("Scholar is of {}".format(type(scholar)))
+        rank = guild.get_role(DICT_ROLENAME_TO_ID[value])
+        print("Scholar is of {}".format(type(rank)))
+        await set_roles_discord(scholar, rank)
+      except Exception as error: 
+        ...
+        pass
+        print(error)
+        await ctx.send("Error changing the role of {}".format(error))
+        print("Something went wrong while changing roles")
+
+
+    # t1 = threading.Thread(target = eval_ranks)
+    # t1.start()
+    # # To ensure the thread finishes before proceeding
+    # t1.join()
+
+    # for member_name in SCHOLAR_LIST_NAME:
+    #   member_id = RECORDS_DISCORD_SCHOLARS[member_name]
+    #   scholar = guild.get_user(member_id)
+    #   print("changing...")
+    #   await set_roles_discord(scholar, DICT_ROLES_CHANGE_SCHOLAR[member_name])
+    #   if member.name in guild.role.members:
+    #     print(member)
+    #   break
     # if 'Scholar' in member.roles:
     #   RECORDS_DISCORD_SCHOLARS[member.name] = member.id
 
-  
+  await asyncio.sleep(1)
   print(RECORDS_DISCORD_SCHOLARS)  
+  await ctx.send("Done assigning ranks")
 
 # called everytime to refresh timer
 # timer is set to go off 6 PM every time
@@ -238,7 +298,7 @@ async def rank_reset_timer_loop():
 
 # background task
 # answer at : "https://stackoverflow.com/a/66753449/14691207"
-rank_reset_timer_loop.start()
+# rank_reset_timer_loop.start()
 my_secret = os.environ['TOKEN']
 bot.run(my_secret)
 
