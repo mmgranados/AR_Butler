@@ -45,31 +45,10 @@ AR = 864496916317995058
 SCHOLAR_ROLE_ID = 864513212027895851
 
 
-
 #######################
 # Credentials code
 gc = gspread.service_account(filename='nifty-expanse-322112-bd87c03b16c7.json')
 ########################
-
-# standalone message sending function
-# does not require action from discord client
-# uses tasks extension from discord
-# client.wait_until_ready() to avoid RunTimeWarning
-# source here: "https://stackoverflow.com/questions/54518397/multiple-get-request-using-asyncio-and-aiohttp-with-timeout-period"
-# async def send_message():
-#   # waits until client is ready 
-#   await client.wait_until_ready()
-#   channel = client.get_channel(867560997673762837)
-#   msg_sent = False
-#   if not msg_sent:
-#     try:  
-#       await channel.send('testing send_message function')
-#       msg_sent = True
-#     except Exception:
-#       print("Something went wrong in send_message")
-#       return
-#   return
-
 
 
 ## General function for spreadsheet retrieval
@@ -90,33 +69,21 @@ def get_info():
   # get all the records of the scholars data
   records_data = sheet_scholars_instance.get_all_records()
 
-
-  # view scholars data
-  #records_data
-
   # converts the scholar data from json to dataframe
   records_df = pd.DataFrame.from_dict(records_data)
   global SCHOLAR_LIST_NAME
   global SCHOLAR_LIST_AVGSLP
+  # split usernames on the # sign. 
   new_name = records_df['Name'].str.split('#', 1, expand=True)
-  # new_name = new_name.drop([1], axis = 1)
-  # print(new_name[0].tolist())
-
+  
   SCHOLAR_LIST_NAME = new_name[0].tolist()
   print(SCHOLAR_LIST_NAME)
   SCHOLAR_LIST_AVGSLP = records_df["Average per day"].tolist()
   # for name, slpavg in zip(SCHOLAR_LIST_NAME, SCHOLAR_LIST_AVGSLP):
   #   print("{}, {}".format(name, slpavg)) 
   
-  
   print("finished get_info test")
 
-
-  # view top records
-  # records_df.head()
-  # t2 = threading.Thread(target = send_message)
-  # t2.start()
-  # return
 
 # Iterate through name list and avgslp list at the same time
 # set role for every item - scholar
@@ -134,10 +101,13 @@ def eval_ranks():
       set_rank(name, "Bronze") 
     elif slp_avg < IRON:
       set_rank(name, "Iron") 
-    
-#    
+
+
+# assigns rank - name becomes key and value becomes rank
+# Dictionary
 def set_rank(name, rank):
   DICT_ROLES_CHANGE_SCHOLAR[name] = rank
+
 
 async def set_roles_discord(scholar, rank):
   try:
@@ -148,11 +118,13 @@ async def set_roles_discord(scholar, rank):
     print("Changed the rank of {} to {}".format(scholar, rank.name))
   except Exception as e:
     print(e)
-    print("Scholar is of {}".format(type(scholar)))
+    # print("Scholar is of {}".format(type(scholar)))
     print("Failed to Change the rank of {}".format(scholar))
 
+
+# used by typing !update
 @bot.command(name = 'update')
-@commands.has_any_role("Admin", "Facilitator")
+@commands.has_any_role("Admin", "Facilitator")  # Checks if user has Admin or Facilitator role
 async def get_channel_members(ctx):
   #Get info of users
   # access global record of discord scholars
@@ -163,7 +135,7 @@ async def get_channel_members(ctx):
   for member in guild.get_role(SCHOLAR_ROLE_ID).members:
     RECORDS_DISCORD_SCHOLARS[member.name] = member.id
 
-    #  try to update 
+  #  try to update from gsheets
   try:
     await ctx.send("Trying to update scholar info from gsheets...")
     get_info()
@@ -174,16 +146,19 @@ async def get_channel_members(ctx):
     await ctx.send("Something went wrong while retrieving info from google sheets")
   await ctx.send("Internal scholar list updated")
 
+  # Initiates eval_ranks
+  # catches error 
   try:
     eval_ranks()
     await ctx.send("Successfully evaluated new ranks")
     print(DICT_ROLES_CHANGE_SCHOLAR)
-  except Exception:
+  except Exception as eval_error:
+    print(eval_error)
     await ctx.send("Error in evaluating ranks")
 
   # Get equivalent discord id of each scholar
     # use id to get Member object/user object
-    # pass on Member/User object to enable remove_roles
+    # pass on Member/User object to use remove_roles
   global AR_ROLE_LIST
   AR_ROLE_LIST = [] # EMPTY LIST OF ROLES
   for value in DICT_ROLENAME_TO_ID.values():
@@ -191,18 +166,17 @@ async def get_channel_members(ctx):
     AR_ROLE_LIST.append(role)
   print(AR_ROLE_LIST)
 
+  # While computing, displays a typing status in Discord
   async with ctx.typing():
     for key, value in DICT_ROLES_CHANGE_SCHOLAR.items():
       try:
         scholar_id = RECORDS_DISCORD_SCHOLARS[key]
-        print("checkpoint 0") ########### CHECKPOINT 0 #########
+        # print("checkpoint 0") ########### CHECKPOINT 0 #########
         # return member object from id
         scholar = guild.get_member(scholar_id)
-        print("checkpoint 1")
-        print("Scholar is of {}".format(type(scholar)))
-        rank = guild.get_role(DICT_ROLENAME_TO_ID[value])
-        print("Scholar is of {}".format(type(rank)))
-        await set_roles_discord(scholar, rank)
+        # print("checkpoint 1")
+        rank = guild.get_role(DICT_ROLENAME_TO_ID[value]) # guild.get_role to get role object
+        await set_roles_discord(scholar, rank)  # function for changing roles in discord 
       except Exception as error: 
         ...
         pass
@@ -210,26 +184,10 @@ async def get_channel_members(ctx):
         await ctx.send("Error changing the role of {}".format(error))
         print("Something went wrong while changing roles")
 
-
-    # t1 = threading.Thread(target = eval_ranks)
-    # t1.start()
-    # # To ensure the thread finishes before proceeding
-    # t1.join()
-
-    # for member_name in SCHOLAR_LIST_NAME:
-    #   member_id = RECORDS_DISCORD_SCHOLARS[member_name]
-    #   scholar = guild.get_user(member_id)
-    #   print("changing...")
-    #   await set_roles_discord(scholar, DICT_ROLES_CHANGE_SCHOLAR[member_name])
-    #   if member.name in guild.role.members:
-    #     print(member)
-    #   break
-    # if 'Scholar' in member.roles:
-    #   RECORDS_DISCORD_SCHOLARS[member.name] = member.id
-
   await asyncio.sleep(1)
   print(RECORDS_DISCORD_SCHOLARS)  
   await ctx.send("Done assigning ranks")
+
 
 # called everytime to refresh timer
 # timer is set to go off 6 PM every time
@@ -246,63 +204,10 @@ def set_timer_interval():
 @bot.event
 async def on_ready():
   print("We have logged in as {0.user}".format(bot))
-  
-
-# @bot.event
-# async def on_message(message):
-#   if message.author == bot.user:
-#     return
-
-#   if message.content.startswith('$hello'):
-#     try:
-#       await message.channel.send('hello')
-#     except Exception:
-#       return
-
-#   if "fuck you" in message.content:
-#     await message.channel.send('you motherfucker')
-#     return
-
-#     asyncio.sleep(30)
-#   # TO DO 
-#   # reply to DMs 
-#   # reply to DMS with their stats for the week
-
-# Loop for reset timer
-# after t1 thread stops, 1s passes then another loop of t1 stars
-@tasks.loop(seconds = 3600) # repeat every after 
-async def rank_reset_timer_loop():
-
-  await bot.wait_until_ready()
-  # channel = client.get_channel(867560997673762837)
-  # msg_sent = False
-  # if not msg_sent:
-  #   try:  
-  #     await channel.send('testing send_message function')
-  #     msg_sent = True
-  #   except Exception:
-  #     print("Something went wrong in send_message")
-  #     return
-
-  # secs = set_timer_interval()
-  # t1 = Timer(30, get_info)
-  # t1.start()
-  # await asyncio.sleep(30)
-  # print("sleep done")
-  # print("left off on line 144, find way for async loop to finish after thread 1 finishes")
-
-  # rank_reset_timer_loop.change_interval(seconds=5)
-  # documentation of change_interval at "https://discordpy.readthedocs.io/en/stable/ext/tasks/index.html?highlight=sleep#discord.ext.tasks.Loop.change_interval"
 
 
-
-# background task
-# answer at : "https://stackoverflow.com/a/66753449/14691207"
-# rank_reset_timer_loop.start()
 my_secret = os.environ['TOKEN']
 bot.run(my_secret)
-
-
 
 
 if __name__ == "__main__":
