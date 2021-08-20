@@ -114,11 +114,31 @@ def set_rank(name, rank):
 async def set_roles_discord(scholar, rank):
   try:
     # Remove all roles of the member that belongs to the AR_ROLE_LIST list (list of objects)
-    for role in AR_ROLE_LIST:
-      await scholar.remove_roles(role, atomic=True)
-    await scholar.add_roles(rank)
+    # set intersections
+    list_to_set_scholar_roles = set(scholar.roles) 
+    list_to_set_ranks = set(AR_ROLE_LIST)
+    await asyncio.sleep(0.1)
+   
+    # Checks for common role in the scholar role and the ranks set by the bot
+    # if intersection is not empty, remove element.
+    list_common_role = list(list_to_set_ranks.intersection(list_to_set_scholar_roles))
+    if list_common_role:
+      for common_role in list_common_role:
+        await scholar.remove_roles(common_role, atomic=True)
+      
+    # https://stackoverflow.com/questions/59825/how-to-retrieve-an-element-from-a-set-without-removing-it
+    try:
+      await scholar.add_roles(rank)
+    except Exception as role_change_error:
+      print(role_change_error)
 
-    print("Changed the rank of {} to {}".format(scholar, rank.name))
+  
+    # for role in AR_ROLE_LIST:
+    #   if role in 
+    #   await scholar.remove_roles(role, atomic=True)
+    # 
+
+    print("Updated the rank of {} to {}".format(scholar, rank.name))
   except Exception as e:
     print(e)
     # print("Scholar is of {}".format(type(scholar)))
