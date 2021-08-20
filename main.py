@@ -21,6 +21,7 @@ import pandas as pd
 import threading
 from threading import Timer
 from datetime import datetime, timedelta
+import time
 
 TIME_DAILY_RESET = 18 # 18TH HR, 6PM
 # contains name and user ID 
@@ -108,9 +109,11 @@ def eval_ranks():
 def set_rank(name, rank):
   DICT_ROLES_CHANGE_SCHOLAR[name] = rank
 
-
+# Async function
+# takes scholar (Object) and rank (object) as parameter
 async def set_roles_discord(scholar, rank):
   try:
+    # Remove all roles of the member that belongs to the AR_ROLE_LIST list (list of objects)
     for role in AR_ROLE_LIST:
       await scholar.remove_roles(role, atomic=True)
     await scholar.add_roles(rank)
@@ -122,7 +125,7 @@ async def set_roles_discord(scholar, rank):
     print("Failed to Change the rank of {}".format(scholar))
 
 
-# used by typing !update
+# command issued by typing !update
 @bot.command(name = 'update')
 @commands.has_any_role("Admin", "Facilitator")  # Checks if user has Admin or Facilitator role
 async def get_channel_members(ctx):
@@ -168,7 +171,11 @@ async def get_channel_members(ctx):
 
   # While computing, displays a typing status in Discord
   async with ctx.typing():
+    # initialize timer on current time
+    start_time = time.time()
+    i_scholar = 0 # count scholars
     for key, value in DICT_ROLES_CHANGE_SCHOLAR.items():
+      i_scholar += 1
       try:
         scholar_id = RECORDS_DISCORD_SCHOLARS[key]
         # print("checkpoint 0") ########### CHECKPOINT 0 #########
@@ -183,7 +190,8 @@ async def get_channel_members(ctx):
         print(error)
         await ctx.send("Error changing the role of {}".format(error))
         print("Something went wrong while changing roles")
-
+  time_elapsed = time.time() - start_time
+  print("the time needed for {} scholars is {}, average time is {} per scholar".format(time_elapsed, i_scholar, time_elapsed / i_scholar))
   await asyncio.sleep(1)
   print(RECORDS_DISCORD_SCHOLARS)  
   await ctx.send("Done assigning ranks")
