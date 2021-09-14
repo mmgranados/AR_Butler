@@ -1,4 +1,4 @@
-
+import discord
 from discord.ext import commands
 
 import asyncio
@@ -29,6 +29,35 @@ class guild_data(commands.Cog):
 
   def __init___(self, bot):
     self.bot = bot
+
+  @commands.command(name = 'butler_help')
+  @commands.has_any_role("Admin", "Facilitator")  # Checks if user has Admin or Facilitator role
+  async def butler_help(self, ctx):
+    await ctx.send(f"prefix: ! ")
+    
+    for cmd in self.walk_commands():
+      if cmd.help:
+        await ctx.send(f"Command: !{cmd.qualified_name}, \n {cmd.help}")
+    
+    
+
+    # role_needed = roles_list[roles_list.index(role.name)]
+
+  @commands.command(name = 'give_role')
+  @commands.has_any_role("Admin", "Facilitator")  # Checks if user has Admin or Facilitator role
+  async def give_role(self, ctx, name, role, reason = "No reason"):
+    mem = ctx.guild.get_member_named(name)
+    roles_list = ctx.guild.roles
+    print(roles_list)
+    role_needed = roles_list[[dc_role.name for dc_role in roles_list].index(role)]
+    # print(type(role_needed)) - debug
+    if role_needed is not None:
+      await mem.add_roles(role_needed)
+      await ctx.send(f"{name} was given the role of {role}")
+
+    print(role_needed)
+    # role_needed = roles_list[roles_list.index(role.name)]
+    
 
 
   # Async function

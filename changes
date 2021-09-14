@@ -1,12 +1,2 @@
-1. moved most of functions to guild_data.py
-2. changed to general ctx.guild from specific (AR GUILD)
-3. Added docstrings to most functions
-4. refactored code - cogs implemented(guild_data), new classes used (rank_module,scholar_data).
-5. changed from bot.commands to commands.commands
-6. Spaced code better
-7. implemented changes.txt
-
-
-next patch: 
-automated testing?
-further break down and separate big block of guild_data 
+1. Added role assigning
+2. Added help commands - still scuffed but template is done
