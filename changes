@@ -1,2 +1,5 @@
-1. Added role assigning
-2. Added help commands - still scuffed but template is done
+1. Rank is now dependent on MMR
+2. Rank from riot mmr tiers to gunbound tiers
+3. Role ids and scholar id for both Crimroo axie tambayan and AR now stored globally
+now allows role changing for crimroo and AR
+- access AR and CRIMROO dicts to get respective data

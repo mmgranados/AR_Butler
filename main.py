@@ -23,8 +23,7 @@ TIME_DAILY_RESET = 18 # 18TH HR, 6PM
 # contains name and user ID 
 
 
-# # AxieReinassance server/Guild ID
-# AR = 864496916317995058
+
 
 # called everytime to refresh timer
 # timer is set to go off 6 PM every time
@@ -45,7 +44,7 @@ async def on_ready():
 # server to keep bot alive (done by pinging every 30 mins)
 keep_alive.keep_alive()
 
-bot.load_extension("cogs.guild_data")
+bot.load_extension("cogs.GuildData")
 
 my_secret = os.environ['TOKEN']
 bot.run(my_secret, reconnect=True)

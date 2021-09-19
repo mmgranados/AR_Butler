@@ -1,9 +1,9 @@
-DIAMOND = 210
-PLATINUM = 160
-GOLD = 125
-SILVER = 100
-BRONZE = 75
-IRON = BRONZE - 0.000000000001
+DIAMOND = 2300
+PLATINUM = 2000
+GOLD = 1500
+SILVER = 1200
+BRONZE = 1000
+IRON = BRONZE - 1
 
 
 DICT_ROLES_CHANGE_SCHOLAR = {}
@@ -18,26 +18,26 @@ def set_rank(name, rank):
 
 # Iterate through name list and avgslp list at the same time
 # set role for every item - scholar
-def eval_ranks(SCHOLAR_LIST_NAME, SCHOLAR_LIST_AVGSLP):
+def eval_ranks(SCHOLAR_LIST_NAME, SCHOLAR_LIST_MMR):
   """
   - Evaluates rank based on slp earnings
   - calls set_rank to assign ranks into dictionary 
   - Return: Dictionary - contains name of scholars as key, rank as value 
   """
 
-  for name, slp_avg in zip(SCHOLAR_LIST_NAME, SCHOLAR_LIST_AVGSLP):
-    if slp_avg >= DIAMOND:
-      set_rank(name, "Diamond")
-    elif slp_avg >= PLATINUM:
-      set_rank(name, "Platinum")
-    elif slp_avg >= GOLD:
-      set_rank(name, "Gold")
-    elif slp_avg >= SILVER:
-      set_rank(name, "Silver")
-    elif slp_avg >= BRONZE:
-      set_rank(name, "Bronze") 
-    elif slp_avg < IRON:
-      set_rank(name, "Iron")
+  for name, mmr in zip(SCHOLAR_LIST_NAME, SCHOLAR_LIST_MMR):
+    if mmr >= DIAMOND:
+      set_rank(name, "Diamond Dragon")
+    elif mmr >= PLATINUM:
+      set_rank(name, "Platinum Wand")
+    elif mmr >= GOLD:
+      set_rank(name, "Gold Battle Axe")
+    elif mmr >= SILVER:
+      set_rank(name, "Silver Axe")
+    elif mmr >= BRONZE:
+      set_rank(name, "Bronze Hammer") 
+    elif mmr < IRON:
+      set_rank(name, "A Little Chick")
   
   # Return final list of ranks
   print(DICT_ROLES_CHANGE_SCHOLAR)

@@ -12,27 +12,52 @@ RECORDS_DISCORD_SCHOLARS = {}
 SCHOLAR_LIST_AVGSLP = []
 SCHOLAR_LIST_NAME = []
 # AR_ROLE_LIST = ["Diamond", "Platinum", "Gold", "Silver", "Bronze", "Iron"]
-AR_ROLE_LIST = []
-DICT_ROLENAME_TO_ID = {'Diamond': 870158644686245949, 'Platinum': 870158382613544980, 'Gold': 870157782282813500, 'Silver': 870157342447128656, 'Bronze': 870157202701299712, 'Iron': 870156327824011275}
+ROLE_LIST = []
+
+AR = {'Diamond Dragon': 870158644686245949, 'Platinum Wand': 870158382613544980, 'Gold Battle Axe': 870157782282813500, 'Silver Axe': 870157342447128656, 'Bronze Hammer': 870157202701299712, 'A Little Chick': 870156327824011275}
+
+CRIMROO = {"Diamond Dragon": 889041995337703456, "Platinum Wand": 889045017740607508,  "Gold Battle Axe": 889046161728622612, "Silver Axe": 889092868050919536, "Bronze Hammer": 889093021214339093,  
+"A Little Chick": 889093193050779708}
+
+# Use guild.name as key to access roles
+DICT_ROLENAME_TO_ID = {"AxieRenaissance Scholarship Program": AR, "Crimroo Axie Tambayan": CRIMROO}
 
 DICT_ROLES_CHANGE_SCHOLAR = {}
 SCHOLAR_LIST_NAME = []
 SCHOLAR_LIST_AVGSLP = []
+SCHOLAR_LIST_MMR = []
 server = None
 
+AR_SCHOLAR_ID = 864513212027895851
+CRIMROO_SCHOLAR_ID = 880113245367697419
+SCHOLAR_ROLE_ID = {"AxieRenaissance Scholarship Program": AR_SCHOLAR_ID, "Crimroo Axie Tambayan": CRIMROO_SCHOLAR_ID}
 
-SCHOLAR_ROLE_ID = 864513212027895851
 
 servers = []
 
-class guild_data(commands.Cog):
+# class Servers():
+
+#   def __init___(self):
+#     self.serverlist = {}
+  
+#   def add(self, guild):
+#     if guild not in self.serverlist:
+#       rolelist = guild.roles
+
+
+class GuildData(commands.Cog):
 
   def __init___(self, bot):
     self.bot = bot
 
   @commands.command(name = 'butler_help')
-  @commands.has_any_role("Admin", "Facilitator")  # Checks if user has Admin or Facilitator role
+  @commands.has_any_role("Admin", "Facilitator", "Dev", "Mod", "Moderator")  # Checks if user has Admin or Facilitator role
   async def butler_help(self, ctx):
+    """
+    Usage: !butler_help
+    function: prints out the commands of the bot
+    """
+
     await ctx.send(f"prefix: ! ")
     
     for cmd in self.walk_commands():
@@ -40,12 +65,14 @@ class guild_data(commands.Cog):
         await ctx.send(f"Command: !{cmd.qualified_name}, \n {cmd.help}")
     
     
-
-    # role_needed = roles_list[roles_list.index(role.name)]
-
   @commands.command(name = 'give_role')
-  @commands.has_any_role("Admin", "Facilitator")  # Checks if user has Admin or Facilitator role
+  @commands.has_any_role("Admin", "Facilitator", "Dev", "Mod", "Moderator")  # Checks if user has Admin or Facilitator role
   async def give_role(self, ctx, name, role, reason = "No reason"):
+    
+    """
+    Format: !give_role [member(don't tag)] [reason (optional)] 
+    Assigns role to member
+    """
     mem = ctx.guild.get_member_named(name)
     roles_list = ctx.guild.roles
     print(roles_list)
@@ -56,10 +83,8 @@ class guild_data(commands.Cog):
       await ctx.send(f"{name} was given the role of {role}")
 
     print(role_needed)
-    # role_needed = roles_list[roles_list.index(role.name)]
+   
     
-
-
   # Async function
   # takes scholar (Object) and rank (object) as parameter
   async def set_roles_discord(self, scholar, rank):
@@ -71,7 +96,7 @@ class guild_data(commands.Cog):
       # Remove all roles of the member that belongs to the AR_ROLE_LIST list (list of objects)
       # set intersections
       list_to_set_scholar_roles = set(scholar.roles) 
-      list_to_set_ranks = set(AR_ROLE_LIST)
+      list_to_set_ranks = set(ROLE_LIST)
       await asyncio.sleep(0.1)
     
       # Checks for common role in the scholar role and the ranks set by the bot
@@ -96,7 +121,7 @@ class guild_data(commands.Cog):
 
   # command issued by typing !update
   @commands.command(name = 'roleupdate')
-  @commands.has_any_role("Admin", "Facilitator")  # Checks if user has Admin or Facilitator role
+  @commands.has_any_role("Admin", "Facilitator", "Dev", "Mod", "Moderator")  # Checks if user has Admin or Facilitator role
   async def get_channel_members(self, ctx):
     """ 
     Updates the rank of members in server
@@ -116,19 +141,13 @@ class guild_data(commands.Cog):
     SERVER = ctx.guild
     print(SERVER)
     await ctx.send(SERVER)
-    # global servers
-    # for guild in self.bot.guilds:
-    #   servers.append(guild)
-    # print(servers)
-      # self.servers.append(guild)
-      # await ctx.send(guild)
-  #   #Get info of users
+    
   #   # access global record of discord scholars
     global RECORDS_DISCORD_SCHOLAR
     global AR
     
     # 2. Fetches the members in the discord server
-    for member in SERVER.get_role(SCHOLAR_ROLE_ID).members:
+    for member in SERVER.get_role(SCHOLAR_ROLE_ID.get(SERVER.name)).members:
       RECORDS_DISCORD_SCHOLARS[member.name] = member.id
 
     # 3. Obtains data from gsheets of scholar that comes from the scholarship tracker
@@ -139,9 +158,12 @@ class guild_data(commands.Cog):
       
       global SCHOLAR_LIST_NAME
       global SCHOLAR_LIST_AVGSLP
-
+      global SCHOLAR_LIST_MMR 
       SCHOLAR_LIST_NAME = big_array[0]
       SCHOLAR_LIST_AVGSLP = big_array[1]
+      SCHOLAR_LIST_MMR = big_array[2]
+      print(SCHOLAR_LIST_MMR)
+
 
       print("Scholar info from gsheets loaded")
     except Exception as e:
@@ -154,7 +176,7 @@ class guild_data(commands.Cog):
     # Initiates eval_ranks
     try:
       global DICT_ROLES_CHANGE_SCHOLAR
-      DICT_ROLES_CHANGE_SCHOLAR = rank_mod.eval_ranks(SCHOLAR_LIST_NAME, SCHOLAR_LIST_AVGSLP)
+      DICT_ROLES_CHANGE_SCHOLAR = rank_mod.eval_ranks(SCHOLAR_LIST_NAME, SCHOLAR_LIST_MMR)
 
       await ctx.send("Successfully evaluated new ranks")
       print(DICT_ROLES_CHANGE_SCHOLAR)
@@ -166,12 +188,12 @@ class guild_data(commands.Cog):
       # use id to get Member object/user object
       # pass on Member/User object to use remove_roles
     # 5. get rolename ids from global var  
-    global AR_ROLE_LIST
-    AR_ROLE_LIST = [] # EMPTY LIST OF ROLES
-    for value in DICT_ROLENAME_TO_ID.values():
+    global ROLE_LIST
+    ROLE_LIST = [] # EMPTY LIST OF ROLES
+    for value in DICT_ROLENAME_TO_ID[SERVER.name].values():
       role = SERVER.get_role(value)
-      AR_ROLE_LIST.append(role)
-    print(AR_ROLE_LIST)
+      ROLE_LIST.append(role)
+    print(ROLE_LIST)
 
     # 6. update roles for each scholar
     # While computing, displays a typing status in Discord
@@ -190,7 +212,7 @@ class guild_data(commands.Cog):
           scholar = SERVER.get_member(scholar_id)
           print(scholar)
           # print("checkpoint 1")
-          rank = SERVER.get_role(DICT_ROLENAME_TO_ID[value]) # guild.get_role to get role object
+          rank = SERVER.get_role(DICT_ROLENAME_TO_ID.get(SERVER.name).get(value)) # guild.get_role to get role object
           await self.set_roles_discord(scholar, rank)  # function for changing roles in discord 
         except Exception as error: 
           ...
@@ -208,5 +230,5 @@ class guild_data(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(guild_data(bot))
+    bot.add_cog(GuildData(bot))
     print('I am being loaded!')

@@ -7,6 +7,7 @@ gc = gspread.service_account(filename='nifty-expanse-322112-bd87c03b16c7.json')
 
 SCHOLAR_LIST_NAME = []
 SCHOLAR_LIST_AVGSLP = []
+SCHOLAR_LIST_MMR = []
 SCHOLAR_DATA_COMBINED = []
 
 def get_info(): 
@@ -32,17 +33,21 @@ def get_info():
     records_df = pd.DataFrame.from_dict(records_data)
     global SCHOLAR_LIST_NAME
     global SCHOLAR_LIST_AVGSLP
+    global SCHOLAR_LIST_MMR 
     # split usernames on the # sign. 
     new_name = records_df['Name'].str.split('#', 1, expand=True)
     
     SCHOLAR_LIST_NAME = new_name[0].tolist()
     print(SCHOLAR_LIST_NAME)
     SCHOLAR_LIST_AVGSLP = records_df["Average per day"].tolist()
+    SCHOLAR_LIST_MMR = records_df["MMR"].tolist()
+    
     # for name, slpavg in zip(SCHOLAR_LIST_NAME, SCHOLAR_LIST_AVGSLP):
     #   print("{}, {}".format(name, slpavg)) 
 
     SCHOLAR_DATA_COMBINED.append(SCHOLAR_LIST_NAME)
     SCHOLAR_DATA_COMBINED.append(SCHOLAR_LIST_AVGSLP)
+    SCHOLAR_DATA_COMBINED.append(SCHOLAR_LIST_MMR) 
 
     print("finished get_info test")
     
