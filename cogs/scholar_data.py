@@ -42,12 +42,15 @@ def get_info():
     SCHOLAR_LIST_AVGSLP = records_df["Average per day"].tolist()
     SCHOLAR_LIST_MMR = records_df["MMR"].tolist()
     
+    SCHOLAR_LIST_RONIN = records_df["Ronin Address"].str[6:].tolist()
+    
     # for name, slpavg in zip(SCHOLAR_LIST_NAME, SCHOLAR_LIST_AVGSLP):
     #   print("{}, {}".format(name, slpavg)) 
 
     SCHOLAR_DATA_COMBINED.append(SCHOLAR_LIST_NAME)
     SCHOLAR_DATA_COMBINED.append(SCHOLAR_LIST_AVGSLP)
     SCHOLAR_DATA_COMBINED.append(SCHOLAR_LIST_MMR) 
+    SCHOLAR_DATA_COMBINED.append(SCHOLAR_LIST_RONIN) 
 
     print("finished get_info test")
     

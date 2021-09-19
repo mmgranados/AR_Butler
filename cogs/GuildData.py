@@ -6,6 +6,7 @@ import time
 
 import cogs.scholar_data as scdata
 import cogs.rank_module as rank_mod
+import cogs.scrape as scrape
 
 RECORDS_DISCORD_SCHOLARS = {}
 # 
@@ -26,6 +27,7 @@ DICT_ROLES_CHANGE_SCHOLAR = {}
 SCHOLAR_LIST_NAME = []
 SCHOLAR_LIST_AVGSLP = []
 SCHOLAR_LIST_MMR = []
+SCHOLAR_LIST_RONIN = []
 server = None
 
 AR_SCHOLAR_ID = 864513212027895851
@@ -83,6 +85,11 @@ class GuildData(commands.Cog):
       await ctx.send(f"{name} was given the role of {role}")
 
     print(role_needed)
+
+  @commands.command(name = 'update_info')
+  @commands.has_any_role("Admin", "Facilitator", "Dev", "Mod", "Moderator")  # Checks if user has Admin or Facilitator role
+  async def scrapeweb(self,ctx):
+    await scrape.get_url_contents()
    
     
   # Async function
@@ -159,10 +166,15 @@ class GuildData(commands.Cog):
       global SCHOLAR_LIST_NAME
       global SCHOLAR_LIST_AVGSLP
       global SCHOLAR_LIST_MMR 
+      global SCHOLAR_LIST_RONIN
+
       SCHOLAR_LIST_NAME = big_array[0]
       SCHOLAR_LIST_AVGSLP = big_array[1]
       SCHOLAR_LIST_MMR = big_array[2]
+      SCHOLAR_LIST_RONIN = big_array[3]
+
       print(SCHOLAR_LIST_MMR)
+      print(SCHOLAR_LIST_RONIN)
 
 
       print("Scholar info from gsheets loaded")
