@@ -15,7 +15,7 @@ def get_info():
   
   # get the instance of the Spreadsheet
   # open by means of URL
-    sheet_scholars = gc.open_by_url('https://docs.google.com/spreadsheets/d/1baDqcluSAw_jbbwBoPFvzkCrV84jn0wkBUzl0rl9Do0/edit#gid=0')
+    sheet_scholars = gc.open_by_url('https://docs.google.com/spreadsheets/d/1PNyoHvNeGNTSXNgVqqMrF-KtKcKip9leTUePpkuoDHA/edit#gid=0')
     
     if sheet_scholars:
       print("google sheet file accessed")
@@ -38,7 +38,7 @@ def get_info():
     new_name = records_df['Name'].str.split('#', 1, expand=True)
     
     SCHOLAR_LIST_NAME = new_name[0].tolist()
-    print(SCHOLAR_LIST_NAME)
+    # print(SCHOLAR_LIST_NAME)
     SCHOLAR_LIST_AVGSLP = records_df["Average per day"].tolist()
     SCHOLAR_LIST_MMR = records_df["MMR"].tolist()
     
@@ -50,7 +50,12 @@ def get_info():
     SCHOLAR_DATA_COMBINED.append(SCHOLAR_LIST_NAME)
     SCHOLAR_DATA_COMBINED.append(SCHOLAR_LIST_AVGSLP)
     SCHOLAR_DATA_COMBINED.append(SCHOLAR_LIST_MMR) 
-    SCHOLAR_DATA_COMBINED.append(SCHOLAR_LIST_RONIN) 
+    SCHOLAR_DATA_COMBINED.append(SCHOLAR_LIST_RONIN)
+
+    print("name size is {}".format(len((SCHOLAR_LIST_RONIN)))) 
+    print("slp size is {}".format(len((SCHOLAR_LIST_AVGSLP)))) 
+    print("mmr size is {}".format(len((SCHOLAR_LIST_MMR)))) 
+    print("ronin size is {}".format(len((SCHOLAR_LIST_RONIN)))) 
 
     print("finished get_info test")
     
