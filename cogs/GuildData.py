@@ -3,6 +3,7 @@ from discord.ext import commands
 
 import asyncio
 import time
+from datetime import datetime
 
 import cogs.scholar_data as scdata
 import cogs.rank_module as rank_mod
@@ -34,6 +35,7 @@ AR_SCHOLAR_ID = 864513212027895851
 CRIMROO_SCHOLAR_ID = 880113245367697419
 SCHOLAR_ROLE_ID = {"AxieRenaissance Scholarship Program": AR_SCHOLAR_ID, "Crimroo Axie Tambayan": CRIMROO_SCHOLAR_ID}
 
+STRING_RANKINGS = ""
 
 servers = []
 
@@ -51,6 +53,9 @@ class GuildData(commands.Cog):
 
   def __init___(self, bot):
     self.bot = bot
+
+  async def raise_error(self, ctx, e):
+    await ctx.send(e)
 
   # Async function
   # takes scholar (Object) and rank (object) as parameter
@@ -214,7 +219,6 @@ class GuildData(commands.Cog):
     await ctx.send("Done assigning ranks of {} scholars, failed assigning ranks to {}".format(i_scholar, errors))
 
 
-
   @commands.command(name = 'butler_help')
   @commands.has_any_role("Admin", "Facilitator", "Dev", "Mod", "Moderator")  # Checks if user has Admin or Facilitator role
   async def butler_help(self, ctx):
@@ -227,7 +231,7 @@ class GuildData(commands.Cog):
     
     for cmd in self.walk_commands():
       if cmd.help:
-        await ctx.send(f"Command: !{cmd.qualified_name}, \n {cmd.help}")
+        await ctx.send(f"```Command: !{cmd.qualified_name}, \n {cmd.help}```")
     
     
   @commands.command(name = 'give_role')
@@ -249,17 +253,107 @@ class GuildData(commands.Cog):
 
     print(role_needed)
 
+
+  async def print_leaderboards(rankings):
+
+    now = datetime.now()
+    # dd/mm/YY H:M:S
+    dt_tostring = now.strftime("%d/%m/%Y %H:%M:%S")
+    
+    global STRING_RANKINGS
+
+    STRING_RANKINGS = "```Rank | Scholar Name | MMR" + " (Last updated on: " + dt_tostring + ")"
+    for rankings_index in range(30):
+        STRING_RANKINGS = STRING_RANKINGS + "\n" + (str(rankings_index + 1) 
+        + ". " + str(rankings[rankings_index])[1:-1])
+
+    STRING_RANKINGS += "```"
+
+
   @commands.command(name = 'update_info')
   @commands.has_any_role("Admin", "Facilitator", "Dev", "Mod", "Moderator")  # Checks if user has Admin or Facilitator role
   async def scrapeweb(self,ctx):
-    await scrape.get_url_contents()
-   
+    """
+    Format: !update_info
+    Uses the axie api to get pvp data of scholars
+    Returns: leaderboards
+    """
+    
+    async with ctx.typing():
+    
+      await ctx.send("leaderboards currently unavailable, fetching data...")
+      await ctx.send("Please wait for a bit.")
+
+      big_array = scdata.get_info()
+        
+      global SCHOLAR_LIST_NAME
+      global SCHOLAR_LIST_AVGSLP
+      global SCHOLAR_LIST_MMR 
+      global SCHOLAR_LIST_RONIN
+
+      SCHOLAR_LIST_RONIN = big_array[3] # Fetch ronin data for scraping info
+
+      try: 
+        rankings = await scrape.get_url_contents(SCHOLAR_LIST_RONIN)
+      except Exception: 
+        print("Something went wrong with the API")
+        await ctx.send("Axie MMR API is in a broken state right now.")
+
+      await print_leaderboards(rankings):
+      now = datetime.now()
+      # dd/mm/YY H:M:S
+      dt_tostring = now.strftime("%d/%m/%Y %H:%M:%S")
+
+      global STRING_RANKINGS
+      
+      STRING_RANKINGS = "```Rank | Scholar Name | MMR" + " (Last updated on: " + dt_tostring + ")"
+      for rankings_index in range(30):
+        STRING_RANKINGS = STRING_RANKINGS + "\n" + (str(rankings_index + 1) 
+        + ". " + str(rankings[rankings_index])[1:-1])
+
+      STRING_RANKINGS += "```"
+
+    
+
+    await ctx.send(STRING_RANKINGS)
+
+  
+  @commands.command(name = 'leaderboards')
+  @commands.has_any_role("Admin", "Facilitator", "Dev", "Mod", "Moderator")  # Checks if user has Admin or Facilitator role
+  async def get_leaderboards(self, ctx):
+    """
+    Format: !leaderboards
+
+    References existing mmr data to in order to get leaderboards
+    If data does not exist, fetches data from Axie API.
+
+    Returns: Leaderboard (in formatted string)
+
+    """
+    try:
+      global STRING_RANKINGS
+
+      print(STRING_RANKINGS)
+      
+      if STRING_RANKINGS == "":
+        await self.scrapeweb(ctx)
+      else:
+        await ctx.send(STRING_RANKINGS)
+    except Exception as e:
+      await self.raise_error(ctx, e)
+
+  @get_leaderboards.error
+  async def get_leaderboards_error(self, ctx, error):
+    if isinstance(error, (commands.MissingRole, commands.MissingAnyRole)):
+      await ctx.send(error)
+
 
   # command issued by typing !update
   @commands.command(name = 'roleupdate')
-  @commands.has_any_role("Admin", "Facilitator", "Dev", "Mod", "Moderator")  # Checks if user has Admin or Facilitator role
+  @commands.has_any_role("Admin", "Facilitator","Dev", "Mod", "Moderator")  # Checks if user has Admin or Facilitator role
   async def get_channel_members(self, ctx):
     """ 
+    Format: !roleupdate
     Updates the rank of members in server
     Steps:
     1. identify server in which the command originates

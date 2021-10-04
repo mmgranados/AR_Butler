@@ -1,4 +1,2 @@
-broke down wall of code in roleupdate command to smaller methods
-changed message sent to discord after commands
-Added more docstrings
-added error tracking
+AXIE api now used in leaderboards data
+
