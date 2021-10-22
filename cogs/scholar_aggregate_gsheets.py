@@ -15,7 +15,7 @@ def get_info():
   
   # get the instance of the Spreadsheet
   # open by means of URL
-    sheet_scholars = gc.open_by_url('https://docs.google.com/spreadsheets/d/1PNyoHvNeGNTSXNgVqqMrF-KtKcKip9leTUePpkuoDHA/edit#gid=0')
+    sheet_scholars = gc.open_by_url('https://docs.google.com/spreadsheets/d/1BM4ku2HLSXAgxOBg6h0wBHuNtp7m_kHqZjdKpVbpndo/edit#gid=1627501359')
     
     if sheet_scholars:
       print("google sheet file accessed")
@@ -32,35 +32,26 @@ def get_info():
     # converts the scholar data from json to dataframe
     records_df = pd.DataFrame.from_dict(records_data)
     global SCHOLAR_LIST_NAME
-    global SCHOLAR_LIST_AVGSLP
-    global SCHOLAR_LIST_MMR 
+    
     # split usernames on the # sign. 
-    new_name = records_df['Name'].str.split('#', 1, expand=True)
+    new_name = records_df['Discord Name'].str.split('#', 1, expand=True)
     
     SCHOLAR_LIST_NAME = new_name[0].tolist()
     # print(SCHOLAR_LIST_NAME)
-    SCHOLAR_LIST_AVGSLP = records_df["Average per day"].tolist()
-    SCHOLAR_LIST_MMR = records_df["MMR"].tolist()
     
-    # SCHOLAR_LIST_RONIN = records_df["Ronin Address"].str[6:].tolist()
     SCHOLAR_LIST_RONIN = records_df["Ronin Address"].tolist()
     
     # for name, slpavg in zip(SCHOLAR_LIST_NAME, SCHOLAR_LIST_AVGSLP):
     #   print("{}, {}".format(name, slpavg)) 
 
     SCHOLAR_DATA_COMBINED.append(SCHOLAR_LIST_NAME)
-    SCHOLAR_DATA_COMBINED.append(SCHOLAR_LIST_AVGSLP)
-    SCHOLAR_DATA_COMBINED.append(SCHOLAR_LIST_MMR) 
     SCHOLAR_DATA_COMBINED.append(SCHOLAR_LIST_RONIN)
 
     print("name size is {}".format(len((SCHOLAR_LIST_RONIN)))) 
-    print("slp size is {}".format(len((SCHOLAR_LIST_AVGSLP)))) 
-    print("mmr size is {}".format(len((SCHOLAR_LIST_MMR)))) 
     print("ronin size is {}".format(len((SCHOLAR_LIST_RONIN)))) 
 
     print("finished get_info test")
     
     return SCHOLAR_DATA_COMBINED
 
-  
-  
+    

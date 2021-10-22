@@ -1,4 +1,4 @@
-
+from discord.ext import commands
 from bs4 import BeautifulSoup
 import pandas as pd
 import urllib3
@@ -15,12 +15,15 @@ SCHOLAR_DATA_COMBINED = []
 # options.use_chromium = True
 
 # driver = Edge(options = options)
-async def get_url_contents(ronin_table):
+async def get_url_contents(ctx, ronin_table):
 
   # open json file, get name and ronin address
   leaderboards = {}
 
+  scholar_scraped = 0
   loop = 0
+  error = 0
+
   for ronin_address in ronin_table:
 
     print(ronin_address)
@@ -39,20 +42,30 @@ async def get_url_contents(ronin_table):
 
     # print(body[0])
     
-
-    dict = json.loads(str(body[1:-1]))
-    # print(type(dict))
-    # print(dict)
     
+    try:
+      dict = json.loads(str(body[1:-1]))
+      # print(type(dict))
+      # print(dict)
+      
+      
+      name = dict.get('items')[1].get('name')
+      elo = dict.get('items')[1].get('elo')
+      leaderboards[name] = elo
+      scholar_scraped += 1
+      loop += 1
 
-    name = dict.get('items')[1].get('name')
-    elo = dict.get('items')[1].get('elo')
+    except Exception as e:
+      error += 1
+      print(e)
 
-    leaderboards[name] = elo
+    if scholar_scraped % 25 == 0:
+      await ctx.send("Scraped {} scholar MMR info".format(scholar_scraped), delete_after = 3)
 
     # print(elo)
-    loop += 1
     
+    
+  await ctx.send("Scraped {} scholar MMR info, failed to get {}".format(scholar_scraped, error))
 
   sort_leaderboards = sorted(leaderboards.items(), key = lambda x:x[1], reverse = True)
   print(sort_leaderboards)

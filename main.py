@@ -25,16 +25,20 @@ TIME_DAILY_RESET = 18 # 18TH HR, 6PM
 
 
 
-# called everytime to refresh timer
-# timer is set to go off 6 PM every time
-# https://stackoverflow.com/questions/15088037/python-script-to-do-something-at-the-same-time-every-day
-# timedelta(days=1) to account for end of month transition days
-def set_timer_interval():
-  x = datetime.today()
-  y = x.replace(day=x.day, hour=18, minute=0, second=0, microsecond=0) + timedelta(days=1)
-  delta_t = y - x
-  secs = delta_t.total_seconds()
-  return secs
+# # called everytime to refresh timer
+# # timer is set to go off 6 PM every time
+# # https://stackoverflow.com/questions/15088037/python-script-to-do-something-at-the-same-time-every-day
+# # timedelta(days=1) to account for end of month transition days
+# def set_timer_interval():
+#   x = datetime.today()
+#   y = x.replace(day=x.day, hour=18, minute=0, second=0, microsecond=0) + timedelta(days=1)
+#   delta_t = y - x
+#   secs = delta_t.total_seconds()
+#   return secs
+# @bot.event
+# async def on_message(message):
+#   if message.content.startswith('!set_status'):
+#       await bot.change_presence(activity = discord.Activity(type=discord.ActivityType.custom, name = "Doing work..."))
 
 
 @bot.event

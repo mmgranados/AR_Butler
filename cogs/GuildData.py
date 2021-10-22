@@ -4,10 +4,14 @@ from discord.ext import commands
 import asyncio
 import time
 from datetime import datetime
+import pytz
+
 
 import cogs.scholar_data as scdata
 import cogs.rank_module as rank_mod
 import cogs.scrape as scrape
+import cogs.scholar_aggregate_gsheets as scholar_agg
+import cogs.scrape_aggregate as scrape_agg
 
 RECORDS_DISCORD_SCHOLARS = {}
 # 
@@ -30,6 +34,7 @@ SCHOLAR_LIST_AVGSLP = []
 SCHOLAR_LIST_MMR = []
 SCHOLAR_LIST_RONIN = []
 SERVER = None
+TIME = ""
 
 AR_SCHOLAR_ID = 864513212027895851
 CRIMROO_SCHOLAR_ID = 880113245367697419
@@ -51,11 +56,20 @@ servers = []
 
 class GuildData(commands.Cog):
 
-  def __init___(self, bot):
+  def __init__(self, bot):
     self.bot = bot
 
   async def raise_error(self, ctx, e):
     await ctx.send(e)
+
+  @commands.command(name = 'set_status')
+  @commands.has_any_role("Admin", "Facilitator","Dev", "Mod", "Moderator")  # Checks if user has Admin or Facilitator role
+  async def set_status(self, ctx, bot_activity = "nothing"):
+    print(bot_activity)
+    # await self.bot.change_presence(activity = 
+    # discord.Activity(type = discord.ActivityType.custom("Doing Work")))
+    await self.bot.change_presence(activity = discord.Activity(type = discord.ActivityType.playing, name = bot_activity))
+
 
   # Async function
   # takes scholar (Object) and rank (object) as parameter
@@ -254,20 +268,17 @@ class GuildData(commands.Cog):
     print(role_needed)
 
 
-  async def print_leaderboards(rankings):
-
-    now = datetime.now()
-    # dd/mm/YY H:M:S
-    dt_tostring = now.strftime("%d/%m/%Y %H:%M:%S")
+  async def print_leaderboards(self, rankings):
     
     global STRING_RANKINGS
 
-    STRING_RANKINGS = "```Rank | Scholar Name | MMR" + " (Last updated on: " + dt_tostring + ")"
+    STRING_RANKINGS = "```Rank | Scholar Name | MMR" + " (Last updated on: " + TIME + " GMT+8)"
     for rankings_index in range(30):
         STRING_RANKINGS = STRING_RANKINGS + "\n" + (str(rankings_index + 1) 
         + ". " + str(rankings[rankings_index])[1:-1])
 
     STRING_RANKINGS += "```"
+    return STRING_RANKINGS
 
 
   @commands.command(name = 'update_info')
@@ -279,45 +290,97 @@ class GuildData(commands.Cog):
     Returns: leaderboards
     """
     
-    async with ctx.typing():
-    
-      await ctx.send("leaderboards currently unavailable, fetching data...")
-      await ctx.send("Please wait for a bit.")
+    await ctx.send("leaderboards currently unavailable, fetching data...")
+    await ctx.send("Please wait for a bit.")
 
-      big_array = scdata.get_info()
-        
-      global SCHOLAR_LIST_NAME
-      global SCHOLAR_LIST_AVGSLP
-      global SCHOLAR_LIST_MMR 
-      global SCHOLAR_LIST_RONIN
+    await self.set_status(ctx, "and working on APIs :D ")
 
-      SCHOLAR_LIST_RONIN = big_array[3] # Fetch ronin data for scraping info
-
-      try: 
-        rankings = await scrape.get_url_contents(SCHOLAR_LIST_RONIN)
-      except Exception: 
-        print("Something went wrong with the API")
-        await ctx.send("Axie MMR API is in a broken state right now.")
-
-      await print_leaderboards(rankings):
-      now = datetime.now()
-      # dd/mm/YY H:M:S
-      dt_tostring = now.strftime("%d/%m/%Y %H:%M:%S")
-
-      global STRING_RANKINGS
+    big_array = scdata.get_info()
       
-      STRING_RANKINGS = "```Rank | Scholar Name | MMR" + " (Last updated on: " + dt_tostring + ")"
-      for rankings_index in range(30):
-        STRING_RANKINGS = STRING_RANKINGS + "\n" + (str(rankings_index + 1) 
-        + ". " + str(rankings[rankings_index])[1:-1])
+    global SCHOLAR_LIST_NAME
+    global SCHOLAR_LIST_AVGSLP
+    global SCHOLAR_LIST_MMR 
+    global SCHOLAR_LIST_RONIN
 
-      STRING_RANKINGS += "```"
+    SCHOLAR_LIST_RONIN = big_array[3] # Fetch ronin data for scraping info
 
     
+    rankings = await scrape.get_url_contents(ctx, SCHOLAR_LIST_RONIN)
 
+    aware_time = pytz.utc.localize(datetime.utcnow()) # tmz aware time
+    localtz = pytz.timezone("Asia/Hong_Kong")
+    now = aware_time.astimezone(localtz)
+    # dd/mm/YY H:M:S
+
+    dt_tostring = now.strftime("%d/%m/%Y %H:%M:%S")
+    global TIME
+    TIME = dt_tostring
+    
+
+    global STRING_RANKINGS
+    STRING_RANKINGS = await self.print_leaderboards(rankings)
+
+    await self.set_status(ctx, "nothing, just chilling.")
+    
     await ctx.send(STRING_RANKINGS)
 
-  
+
+
+  @commands.command(name = 'scrape_aggregate')
+  @commands.has_any_role("Admin", "Facilitator", "Dev", "Mod", "Moderator")  # Checks if user has Admin or Facilitator role
+  async def scrapeweb_aggregate(self, ctx):
+    """
+    Uses addresses in aggregate to make the info fetching faster
+    Divides scholars into batches instead of individual calls
+    """
+    start_time = time.process_time()
+    # scholar_array = scholar_agg.get_info() # removed for now
+    scholar_array = scdata.get_info()
+    name_list = scholar_array[0]
+    ronin_list = scholar_array[3]
+    
+    print(ronin_list)
+    print("size of ronin list")
+    print(len(ronin_list))
+
+    n_scholars = len(ronin_list)
+    rankings = {}
+    n_scholars_examined = 0
+    scholars_per_batch = int(n_scholars / 5)
+
+    while(n_scholars_examined < n_scholars):
+      if (n_scholars_examined + scholars_per_batch > n_scholars): 
+        partial_rankings = await scrape_agg.get_url_contents_aggregate(ctx, ronin_list[n_scholars_examined: n_scholars])
+
+      partial_rankings = await scrape_agg.get_url_contents_aggregate(ctx, ronin_list[n_scholars_examined: n_scholars_examined + scholars_per_batch])
+
+      full_rankings = {**partial_rankings, **rankings}
+      rankings = full_rankings
+
+      n_scholars_examined += scholars_per_batch
+
+    sort_rankings = sorted(rankings.items(), key = lambda x:x[1], reverse = True)
+
+    aware_time = pytz.utc.localize(datetime.utcnow()) # tmz aware time
+    localtz = pytz.timezone("Asia/Hong_Kong")
+    now = aware_time.astimezone(localtz)
+    # dd/mm/YY H:M:S
+
+    dt_tostring = now.strftime("%d/%m/%Y %H:%M:%S")
+    global TIME
+    TIME = dt_tostring
+    
+
+    global STRING_RANKINGS
+    STRING_RANKINGS = await self.print_leaderboards(sort_rankings)
+
+    await self.set_status(ctx, "nothing, just chilling.")
+    duration = time.process_time() - start_time
+    print(duration)
+    await ctx.send(STRING_RANKINGS)
+
+
+
   @commands.command(name = 'leaderboards')
   @commands.has_any_role("Admin", "Facilitator", "Dev", "Mod", "Moderator")  # Checks if user has Admin or Facilitator role
   async def get_leaderboards(self, ctx):
@@ -336,7 +399,7 @@ class GuildData(commands.Cog):
       print(STRING_RANKINGS)
       
       if STRING_RANKINGS == "":
-        await self.scrapeweb(ctx)
+        await self.scrapeweb_aggregate(ctx)
       else:
         await ctx.send(STRING_RANKINGS)
     except Exception as e:
@@ -346,6 +409,7 @@ class GuildData(commands.Cog):
   async def get_leaderboards_error(self, ctx, error):
     if isinstance(error, (commands.MissingRole, commands.MissingAnyRole)):
       await ctx.send(error)
+
 
 
   # command issued by typing !update
@@ -388,7 +452,7 @@ class GuildData(commands.Cog):
     # While computing, displays a typing status in Discord
     
     await self.update_roles_discord(ctx)
-    
+
 
 def setup(bot):
     bot.add_cog(GuildData(bot))

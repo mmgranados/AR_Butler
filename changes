@@ -1,2 +1,9 @@
-AXIE api now used in leaderboards data
+Change: Changed from multiple singular API calls to multiple aggregate API calls
+Reason: Faster by a mile
+
+Change: added aggregate api in sheets and axie ecosystem
+Reason: makes the calls significantly faster
+
+Change: Deprecated all singular api calls.
+Reason: speed bottleneck for the program
 
